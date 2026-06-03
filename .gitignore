@@ -23,3 +23,7 @@ output/
 
 # Keywords to ignore
 *archive
+
+# Documents to ignore
+Workshop1_files/
+rsconnect/
