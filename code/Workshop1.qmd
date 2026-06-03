@@ -31,24 +31,24 @@ knitr::opts_chunk$set(
 # Workshop 1 - Foundations of Data Science; Wrangling and Plotting.
 
 
-### Clear out environment
+## Clear out environment
 ```{r housekeeping, message=FALSE, warning=FALSE, include=FALSE}
 rm(list=ls())
 ```
 
-### Load packages
+## Load packages
 ```{r packages, message=FALSE, warning=FALSE, include=FALSE}
 library(tidyverse)
 library(readxl)
 library(here)
 ```
 
-### Source script
+## Source script
 ```{r source-script1, message=FALSE, warning=FALSE, include=FALSE}
 source("Workshop1.R")
 ```
 
-### Project initialisation and workspace architecture 
+## Project initialisation and workspace architecture 
 
 Establishing a new R project independent of previous work, by pulling down the class repository.
 
@@ -56,12 +56,12 @@ There are two ways in which this can be made. By 'Forking' which is a connected 
 
 In this occasion a Standalone will be the recommended pathway. By using 'usethis' package to close the repository and removing the connection to the master file. This will upload an independent copy onto your personal GitHub.
 
-### Clone class repository steps:
+## Clone class repository steps:
 1. copy the HTTPS URL from the class repository
 2. Open RStudio, create a new version control project and paste the URL, and save it where you want on your computer.
 3. Click create project.
 
-### Remove the original connection and establish a new one.
+## Remove the original connection and establish a new one.
 1. Run the following code in the console 
 
 ```{r remove original connection}
@@ -77,7 +77,7 @@ gert::git_remote_remove("origin")
 usethis::use_github()
 ```
 
-### Memory allocation and evnironment hygiene.
+## Memory allocation and evnironment hygiene.
 
 A computer's active memory can retain hidden data values across multiple computing runs, which can linger and cause un-traceable errors in the current analysis. 
 
@@ -89,7 +89,7 @@ rm(list = ls()) # Clear all objects from the environment
 objects() # Confirm that the environment is clean 
 ```
 
-### Breaking the 'Save Workspace' reflex and purging .RData
+## Breaking the 'Save Workspace' reflex and purging .RData
 
 In data science one must train themselves to break the reflex of hitting Yes to the 'Save Workspace' prompt when closing R. 
 When one does this RStudio saves a hidden binary snapshot of the current temporary RAM directly into the project folder as a .RData file. This reloads all the old variables, data frames and broken code attempts back into the memory. While it might work on your computer, it will break when co-authors, advisors or reviewers try to run your script on their computers.
@@ -110,9 +110,9 @@ To wipe it out entirely from inside R, execute the following in the console:
 unlink("~/.RData")
 ```
 
-### Ingesting data into R
+## Ingesting data into R
 
-### Tibbles vs. legacy tables
+## Tibbles vs. legacy tables
 
 When tabular assets are imported using modern tidyverse commands, the resulting object is stored in the environment memory as a specialized structure (tibble; tbl_df).
 
@@ -137,7 +137,295 @@ print(benthic_cover)
 ```
 
 
-### Wrangling out ecological signals using Palmer Penguins
+## Wrangling out ecological signals using Palmer Penguins
+
+To reveal how data wragling reveals information abour underlying ecology, We will work with the Palmer Penguins built-in dataset.
+
+```{r Load the package data into active memory}
+library(palmerpenguins)
+data("penguins")
+```
+
+When loading a new dataset always examine the structure of it.
+
+```{r examine dataset}
+glimpse(penguins) # tidyverse version (from dplyr package)
+str(penguins) # base R version
+```
+
+The glimpse() command maps out the entirety anatomy of the dataset, with the vector types listed within the arrow markers:
+
+<fct> is a factor, refering to categorical groupings with fixed levels. <dbl> refers to double, a continous numeric measurement containing decimals. <int> is an integer, referring to whole number variables that track counts.
+
+A statistical overview can be conducted to map out missing observations and parameter boundaries 
+
+summary() is an immediate diagnostic tool which reports any missing indicators (NA) within individual biological metrics.
+
+```{r summary matrix}
+# Generating an exploratory summary matrix
+summary(penguins)
+```
+
+## Foundational grammar: Slicing, filtering, sorting, and transforming
+
+The dplyr package introduces the foundational verbs required to shape tables manually
+
+### Isolating attributes with select()
+Allows to slice datasets vertically, isolating or dropping columns based on variable names:
+
+```{r vertically slice}
+# Vertically slice specific morphometric variables by explicit name
+morphology_metrics <- select(penguins, species, bill_length_mm, bill_depth_mm, body_mass_g)
+glimpse(morphology_metrics)
+
+# Retain a continous block of attributes using the colon operator
+spatial_block <- select(penguins, species:island)
+
+# Discard logistics tracking attributes while preserving everything else using the minus sign
+clean_scientific_fields <- select(penguins, -year)
+
+```
+
+### Shifting rows with filter()
+
+This isolates records horizontally based on targeted conditional parameters. R evaluates every row against the logical expression, retaining TRUE entries and dropping FALSE or NA entries.
+
+```{r}
+# Isolate observations belonging to a single categorical target group
+adelie_cohort <- filter(penguins, species == "Adelie")
+
+# Shift out individuals using continuous numerical boundary thresholds
+#Preserves only large penguins with mass above 4500 g
+heavy_penguins <- filter(penguins, body_mass_g >4500)
+
+# Combine multiple conditional parameters across separate attributes
+# Preserve records matching Gentoo penguins sampled on Biscoe Island
+biscoe_gentoo <- filter(penguins, species == "Gentoo" & island == "Biscoe")
+
+#Shift records matching multiple targeting flags within an explicit set
+sub_islands <- filter(penguins, island %in% c("Dream", "Torgersen"))
+
+```
+
+### Ordering sequences with arrange()
+
+This alters the sorting configuration of rows within the data frame without changing individual cell values.
+
+```{r}
+# Sort penguins by ascending body mass (smallest mass first)
+lightest_first <- arrange(penguins, body_mass_g)
+
+#Sort penguins in descending sequence
+heaviest_first <- arrange(penguins, desc(body_mass_g))
+
+# Execute nested sorting criteria: Group by species, then sort by descending bill length
+stratified_morphology <- arrange(penguins, species, desc(bill_length_mm))
+
+```
+
+### Introducing the Pipe (|>)
+
+The pipe is used to cleanly chain operations togetehr. It can be done by passing a series of transformations through the data in a single, linear flow.
+
+With a pipe you take your data, then you filter it, and mutate it to create a new column. Then you select the columns you need.
+
+The syntax for the native R pipe is |>. The pipe operator built into the tidyverse package (%>)
+
+Instead of writing:
+
+```{r}
+penguins_subset <- mutate(penguins, bill_ratio = bill_length_mm / bill_depth_mm)
+
+penguins_final <- filter(penguins_subset, species == "Adelie")
+
+```
+
+Using the pipe:
+
+```{r using pipe}
+penguins_final <- penguins |>
+  mutate(bill_ratio = bill_length_mm / bill_depth_mm) |>
+  filter(species == "Adelie")
+
+```
+
+### Computing new attributes with mutate()
+
+We mutate a new variable to modify existing attributes or append new vectors to the data frame
+
+```{r}
+# Calculate a new morphological ratio in our environment
+penguin_ratios <- penguins |>
+  mutate(body_mass_kg = body_mass_g / 1000, # convert g to kg
+         bill_ratio = bill_length_mm / bill_depth_mm) #bill ratio 
+
+# view newly engineered variables appended to the far right columns
+glimpse(penguin_ratios)
+
+```
+
+## Data aggregation and ecological summarisation
+
+Isolating and sorting individual rows or columns allows a clean dataset, however it does not show the broad underlying ecological story.
+
+To extract meaningful biological conclusions, thousands of individual observations need to be compressed into explicit population summary metrics.
+
+```{r}
+# Grouping active memory penguins by species
+grouped_penguins <- group_by(penguins, species)
+
+# The table looks identical, but metadata notes groups:species [3]
+print(grouped_penguins)
+
+# Collapsing the buckets into explicit summary metrics
+species_mass_summary <- summarise(grouped_penguins, mean_mass_g = mean(body_mass_g))
+print(species_mass_summary) # operation failed and returned NA values for certain groups
+
+```
+
+The missing value trap is the reason as to why NA values returned for certain groups. This happens if a column contains even a single NA value, any mathematical function will retrun NA to protect from miscalculating metrics on incomplete data.
+
+To override this safely, you must explicitly declare that missing cells should be dropped during calculation using magrittr pipe to wragle the data.
+
+```{r}
+# Overcoming the missing value trap using na.rm = TRUE
+biological_signal <- penguins %>%
+  group_by(species, sex) %>%
+  summarise(
+    sample_size = n(),#total individuals per category
+    mean_mass_g = mean(body_mass_g,na.rm = TRUE), # mean ignoring missing cells
+    sd_mass_g = sd(body_mass_g, na.rm = TRUE) #SD calculation
+  )
+
+print(biological_signal)
+```
+
+## Integrating data grammar with visual diagnostics in qmd
+
+In marine science, data is wrangled specifically to prepare it for visual display.
+
+### Wrangling and plotting in parallel
+
+Combining the pipe and the basics of ggplot2 into a single reproducible block
+
+Because the .qmd already loads cleaned data via source("Workshop1.R), you can build visualizations and summary tables in real time.
+
+Challenge: Visualizing body size and shape
+
+Using loaded data, create a code chunk that performs the following tow tasks simultaneously:
+1. Summary table: pipe data to group_by(), and summarise () to calculate the mean body mass for each species and island
+2. Visualization: Pipe the same dataset into ggplot() to create a boxplot of body_mass_g by species, with the island variable mapped to fill or facet_wrap().
+
+```{r}
+# Summary Table
+penguins |>
+  group_by(species, island) |>
+  summarise(mean_mass_g = mean(body_mass_g, na.rm = TRUE)) |>
+  print() # Print summary table
+
+```
+
+```{r}
+# Visualization
+penguins |>
+  ggplot(aes(x = species, y = body_mass_g, fill = island)) +
+  geom_boxplot() +
+  labs(title = "Body Mass of Penguins by Species and Island",
+       x = "Species",
+       y = "Body Mass (g)") +
+  theme_minimal()
+
+```
+
+
+### Piping directly to visualisation
+
+Sometimes a summary table does not need to be saved as an object. If the goal is to visualise patterns and uncertainty within your aggregated data, the pipeline can be extended into ggplot2.
+
+Example of piping directly into a visualization
+
+```{r}
+# pipe directly from aggregation to plotting with error bars
+mass_compare_plot <- penguins |>
+  group_by(species, island) |>
+  summarise(
+    mean_mass = mean(body_mass_g, na.rm = TRUE),
+    sd_mass = sd(body_mass_g, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) |>
+  ggplot(aes(x = species, y = mean_mass, colour = island)) +
+  geom_point(size = 3)+
+  geom_errorbar(aes(ymin = mean_mass - sd_mass,
+                    ymax = mean_mass + sd_mass),
+                width = 0.2) +
+  labs(title = "Mean Body Mass by Species and Island",
+       subtitle = "Error bars represent standard deviation",
+       y = "Mean Body Mass (g)",
+       x = "Species") +
+  theme_minimal()
+
+mass_compare_plot
+
+```
+
+Challenge: Create a new plot. Swapping sd_mass for standard error (sd / sqrt(n)). Present the summary table alongside the associated figure
+
+```{r}
+mass_compare_plot_SE <- penguins |>
+  group_by(species, island) |>
+  summarise(
+    mean_mass = mean(body_mass_g, na.rm = TRUE),
+    sd_mass = sd(body_mass_g, na.rm = TRUE),
+    n = n(),
+    se_mass = sd_mass / sqrt(n), # Calculate standard error
+    .groups = "drop"
+  ) |>
+  ggplot(aes(x = species, y = mean_mass, colour = island)) +
+  geom_point(size = 3)+
+  geom_errorbar(aes(ymin = mean_mass - se_mass,
+                    ymax = mean_mass + se_mass),
+                width = 0.2) +
+  labs(title = "Mean Body Mass by Species and Island",
+       subtitle = "Error bars represent standard error",
+       y = "Mean Body Mass (g)",
+       x = "Species") +
+  theme_minimal()
+
+mass_compare_plot_SE
+```
+
+## Saving, exporting, and version milestones
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
