@@ -1,6 +1,6 @@
 ---
 title: "R for Marine Science Workshop 1"
-author: "Your name here"
+author: "Miroslava Guerrero"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
  html_document:
@@ -28,7 +28,7 @@ knitr::opts_chunk$set(
 	warning = FALSE)
 ```
 
-## Introduction
+# Workshop 1 - Foundations of Data Science; Wrangling and Plotting.
 
 
 ### Clear out environment
@@ -39,12 +39,110 @@ rm(list=ls())
 ### Load packages
 ```{r packages, message=FALSE, warning=FALSE, include=FALSE}
 library(tidyverse)
+library(readxl)
+library(here)
 ```
 
 ### Source script
 ```{r source-script1, message=FALSE, warning=FALSE, include=FALSE}
 source("Workshop1.R")
 ```
+
+### Project initialisation and workspace architecture 
+
+Establishing a new R project independent of previous work, by pulling down the class repository.
+
+There are two ways in which this can be made. By 'Forking' which is a connected copy of the class repository, and a 'Standalone copy', which is disconnected from the class repository.
+
+In this occasion a Standalone will be the recommended pathway. By using 'usethis' package to close the repository and removing the connection to the master file. This will upload an independent copy onto your personal GitHub.
+
+### Clone class repository steps:
+1. copy the HTTPS URL from the class repository
+2. Open RStudio, create a new version control project and paste the URL, and save it where you want on your computer.
+3. Click create project.
+
+### Remove the original connection and establish a new one.
+1. Run the following code in the console 
+
+```{r remove original connection}
+#| eval: false
+#| include: false
+gert::git_remote_remove("origin")
+```
+
+2. Push a fresh copy to own profile
+```{r push to own profile}
+#| eval: false
+#| include: false
+usethis::use_github()
+```
+
+### Memory allocation and evnironment hygiene.
+
+A computer's active memory can retain hidden data values across multiple computing runs, which can linger and cause un-traceable errors in the current analysis. 
+
+To eliminate this issue, a baseline workflow can be established at the top of every fresh script file using:
+
+```{r Hosekeeping - baseline workflow}
+objects() # List all active objects in the environment 
+rm(list = ls()) # Clear all objects from the environment 
+objects() # Confirm that the environment is clean 
+```
+
+### Breaking the 'Save Workspace' reflex and purging .RData
+
+In data science one must train themselves to break the reflex of hitting Yes to the 'Save Workspace' prompt when closing R. 
+When one does this RStudio saves a hidden binary snapshot of the current temporary RAM directly into the project folder as a .RData file. This reloads all the old variables, data frames and broken code attempts back into the memory. While it might work on your computer, it will break when co-authors, advisors or reviewers try to run your script on their computers.
+
+To permanently adjust your settings to protect you from this trap do the following:
+1. Tools > Global Options > General > Workspace heading
+2. Uncheck the box that says Re-store .RData into workspace at startup.
+3. on the dropdown menu next to Save workspace to .RData on exit change it to NEVER
+4. Click Apply and then OK.
+
+Advanced troubleshooting note: if RStudio is opened without opening specific projects. And notice variables or data frames are mysteriously floating in the Environment tab, an .RData file has been accidentally saved to the computer's global user home directory. 
+
+To wipe it out entirely from inside R, execute the following in the console:
+
+```{r purge .RData from home directory}
+#| eval: false
+#| include: false
+unlink("~/.RData")
+```
+
+### Ingesting data into R
+
+### Tibbles vs. legacy tables
+
+When tabular assets are imported using modern tidyverse commands, the resulting object is stored in the environment memory as a specialized structure (tibble; tbl_df).
+
+While a tibble is still a base R data frame, the underlying software architecture prevents common data corruption errors and console performance issues.
+
+To see the behavioural difference of a modern tidyverse tibble and legacy base R data.frame, initialise a native tidyverse data object and enforce comparative transformation. 
+
+Firstly we force a modern tibble to degrade into a legacy base R data frame structure
+
+```{r force modern tibble}
+benthic_cover_df <- as.data.frame(benthic_cover)
+```
+
+Then we compare it 
+
+```{r tibble comparisons}
+# Print old-style dataframe structure to view
+print(benthic_cover_df)
+
+# Compare with tibble alternative
+print(benthic_cover)
+```
+
+
+### Wrangling out ecological signals using Palmer Penguins
+
+
+
+
+
 
 
 
