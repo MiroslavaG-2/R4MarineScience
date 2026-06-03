@@ -22,7 +22,7 @@ editor_options:
 ```{r setup, include=FALSE}
 # Set options, housekeeping
 knitr::opts_chunk$set(
-	echo = FALSE,
+	echo = TRUE,
 	include = TRUE,
 	message = FALSE,
 	warning = FALSE)
@@ -30,6 +30,7 @@ knitr::opts_chunk$set(
 
 # Workshop 1 - Foundations of Data Science; Wrangling and Plotting.
 
+This workshop aims to establish a foundational workflow for data science in R, with a focus on data wrangling and visualisation. The session covers best practices for project management, environment hygiene, and the use of tidyverse tools to extract ecological insights from tabular datasets.
 
 ## Clear out environment
 ```{r housekeeping, message=FALSE, warning=FALSE, include=FALSE}
@@ -110,8 +111,6 @@ To wipe it out entirely from inside R, execute the following in the console:
 unlink("~/.RData")
 ```
 
-## Ingesting data into R
-
 ## Tibbles vs. legacy tables
 
 When tabular assets are imported using modern tidyverse commands, the resulting object is stored in the environment memory as a specialized structure (tibble; tbl_df).
@@ -123,6 +122,7 @@ To see the behavioural difference of a modern tidyverse tibble and legacy base R
 Firstly we force a modern tibble to degrade into a legacy base R data frame structure
 
 ```{r force modern tibble}
+source("Workshop1.R") # load data into active memory
 benthic_cover_df <- as.data.frame(benthic_cover)
 ```
 
@@ -429,7 +429,6 @@ Figures can be saved using ggsave(), as part of the ggplot2 built-in function.
 #| include: false
 ggsave("outputs/mass_compare_plot_SE.png", plot = mass_compare_plot, width = 120, height = 120, units = "mm", dpi = 300) # save figure with custom dimensions and resolution
 ```
-
 
 
 
