@@ -397,7 +397,38 @@ mass_compare_plot_SE
 
 ## Saving, exporting, and version milestones
 
+Check that the correct folders are available, and create them if not:
 
+```{r}
+#| eval: false
+#| include: false
+# Create output directories if they do not exist
+if (!dir.exists("outputs/figures")) dir.create("outputs/figures") # folder for figs
+
+if (!dir.exists("outputs/tables")) dir.create("outputs/tables") # folder for tables
+
+if (!dir.exists("Rdata")) dir.create("Rdata") # folder for summary tables
+```
+
+There are several options for saving objects.
+
+Tables can be saved as a universal csv text file, which is ideal for sharing with collaborators who don't use R. Or as a native R binary RDS object, which preserves the exact vector configurations, and won't need to be re-formatted when reloaded.
+
+```{r}
+#| eval: false
+#| include: false
+write_csv(biological_signal, "outputs/penguin_species_mass_summary.csv") # save as csv
+
+saveRDS(clean_cohort, "outputs/clean_penguin_morphology_cohort.rds") # save as RDS
+```
+
+Figures can be saved using ggsave(), as part of the ggplot2 built-in function.
+
+```{r}
+#| eval: false
+#| include: false
+ggsave("outputs/mass_compare_plot_SE.png", plot = mass_compare_plot, width = 120, height = 120, units = "mm", dpi = 300) # save figure with custom dimensions and resolution
+```
 
 
 
