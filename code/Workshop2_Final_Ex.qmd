@@ -28,15 +28,201 @@ knitr::opts_chunk$set(
 ```
 
 
-# Introduction
+# Keystone exercise: Estuary fish survey - Data rescue mission.
 
-# Housekeeping and libraries
+Messy data will be wrangled and final tables and figures will be produced. The data contains information on water quality, and predatory fish assemblages along the Ross River Estuary.
+The data contains information on 4 different sites and 4 species which was collected on a 30 day period. Along with metadata on the sites and environmental conditions from the sensor data. 
+
+
+## Housekeeping and libraries
 ```{r}
 rm(list=ls()) # clear out environment
 
 library(tidyverse)
 library(readxl)
 ```
+
+## Load main dataset
+
+The catch data is split across 4 tabs in one excel file. Load them individually and then combine them together.
+
+```{r}
+catch1 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 1)
+catch2 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 2)
+catch3 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 3)
+catch4 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 4)
+```
+
+Inspect each tab to look for abnormalities between workbooks and variable naming issues
+```{r}
+catch1
+catch2
+catch3
+catch4
+```
+
+Although it does not seem to have any naming issues, it does. We need to combine the data and then check again
+
+### Bind rows together
+
+```{r}
+catch_data <- bind_rows(catch1, catch2, catch3, catch4)
+rm(catch1, catch2, catch3, catch4) # Clean up the environment
+```
+
+### Preliminary checks
+```{r}
+catch_data
+head(catch_data)
+glimpse(catch_data)
+str(catch_data)
+```
+
+To properly check how many levels of site and species there are, we can do this by checking them by using distinct(), or converting them to factors.
+Firstly we will look at the distinct values first, in case we need to clean them before converting them to a factor. 
+
+```{r}
+catch_data |> 
+  distinct(site)
+
+catch_data |> 
+  distinct(species)
+```
+
+After running the above code we can observe we have 4 sites which seem to be different locations on the Ross River, corresponding to selected zones on the estuary. This will need to be checked against the metadata once loaded. Before the data gets joined with the metadata and taxonomic dictionary, we need to fix and clean the site and species names.
+
+### Next steps for catch data
+
+We need to fix the site names and place them in a reasonable order. As well as fix the species names by making them consistent and then using the taxonomic dictionary to translate to their scientific names.
+
+## Load the metadata
+```{r}
+metadata <- read.csv("../data/workshop2/estuary_metadata.csv")
+```
+
+### Checks
+```{r}
+head(metadata)
+glimpse(metadata)
+```
+
+The site names on the metadata are also all over the place, these will need to be standardized along with the catch_data table before both of the tables get combined.
+
+
+### Fixing site names
+The following code will fix the site names and convert any character variables to factor variables.
+
+```{r}
+# Fix site name and variables -data
+catch_data <- catch_data |>
+  mutate(
+    site = str_to_lower(str_trim(site)), # Converts all letters to lowercase and removes extra spaces
+    site = str_replace_all(site, " ", "_")) |> # replaces spaces with underscores
+  mutate(across(where(is.character), as_factor) # Convert all chr to fct
+  )
+
+# Fix site name and variables - metadata
+metadata <- metadata |>
+  mutate(
+    site_name = str_to_lower(str_trim(site_name)),
+    site_name = str_replace_all(site_name, " ", "_")) |> 
+  mutate(across(where(is.character), as_factor) # Convert all chr to fct
+  )
+```
+
+
+### Recheck
+```{r recheck-site-names}
+# Check data table
+str(catch_data)
+# Check site names only
+catch_data |> 
+  distinct(site)
+
+# Check metadata table
+str(metadata)
+# Check site names only
+metadata |> 
+  distinct(site_name)
+
+```
+
+Now the site names are fixed in both tables but there is still differences in the variable names (site vs site_name). This can be fixed when we join the datasets together. 
+
+### Fixing the species names
+
+Using the taxonomic dictionary we can find the scientific names for the species. We need to match the common names in the catch log to match them to their scientific name before joining both datasets.
+
+#### Loading the taxonomic dictionary
+```{r}
+species_dict <- read_csv("../data/workshop2/species_dictionary.csv")
+
+# Check
+head(species_dict)
+```
+
+After loading the taxonomic dictionary we can check the species name of both our data and the dictionary.
+
+```{r}
+# Species names we have
+catch_data |> 
+  distinct(species)
+
+# Species name from dictionary
+species_dict |>
+  distinct(common_name)
+
+```
+
+As we can see they both have different names for the species. The common species name variable in the catch data to match those of the dictionary. Here we will fix the species names.
+
+```{r}
+catch_data <- catch_data |>
+  mutate(
+    species = str_to_lower(str_trim(species)),
+    species = str_replace_all(species, " ", "_")
+  )
+
+catch_data |> 
+  distinct(species)
+
+```
+
+Now we will create a new variable in the catch data by joining it with the taxonomic dictionary to indicate the scientific name.
+
+```{r}
+catch_data <- catch_data |>
+  mutate(common_name = species) |>
+  left_join(species_dict, by = join_by(common_name))
+
+# Check that it worked
+catch_data |> 
+  distinct(species, scientific_name)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
