@@ -286,12 +286,12 @@ sal_sum <-
 
 sal_sum |> 
   ggplot(aes(x = zone, y = median_salinity)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = median_salinity - sd_salinity, ymax = median_salinity + sd_salinity), width = 0.2) +
+  geom_errorbar(aes(ymin = median_salinity - sd_salinity, ymax = median_salinity + sd_salinity), 
+                width = 0.2, color = "grey50") +
+  geom_point(size = 3, color = "steelblue") +
   theme_minimal() +
   labs(title = "Median Salinity by Zone (± SD)",
-       x = "Zone",
-       y = "Median Salinity (ppt)")
+       x = "Zone", y = "Median Salinity (ppt)")
 
 ```
 
@@ -311,8 +311,9 @@ turb_sum <-
 # Create a plot
 turb_sum |>
   ggplot(aes(x = zone, y = median_turbidity)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = median_turbidity - sd_turbidity, ymax = median_turbidity + sd_turbidity), width = 0.2) +
+  geom_errorbar(aes(ymin = median_turbidity - sd_turbidity, ymax = median_turbidity + sd_turbidity), 
+                width = 0.2, color = "grey50") +
+  geom_point(size = 3, color = "steelblue") +
   theme_minimal() +
   labs(title = "Median Turbidity by Zone (± SD)",
        x = "Zone",
@@ -336,8 +337,9 @@ temp_sum <-
 # Create plot
 temp_sum |>
   ggplot(aes(x = zone, y = median_temperature)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = median_temperature - sd_temperature, ymax = median_temperature + sd_temperature), width = 0.2) +
+  geom_errorbar(aes(ymin = median_temperature - sd_temperature, ymax = median_temperature + sd_temperature), 
+                width = 0.2, color = "grey50") +
+  geom_point(size = 3, color = "steelblue") +
   theme_minimal() +
   labs(title = "Median Temperature by Zone (± SD)",
        x = "Zone",
@@ -353,17 +355,16 @@ We will now remake the salinity plot so it will be publication-ready.
 
 ```{r}
 #| fig-cap: "Salinity across zones, Ross River Estuary System, Townsville, QLD (May 2026)."
-
 sal_sum |> 
   ggplot(aes(x = zone, y = median_salinity)) +
-  geom_point() +
   geom_errorbar(
     aes(
       ymin = median_salinity - sd_salinity,
       ymax = median_salinity + sd_salinity
     ),
-    width = 0.2
+    width = 0.2, color = "grey50"
   ) +
+  geom_point(size = 3, color = "steelblue") +
   theme_minimal() +
   labs(
     x = "Zone",
