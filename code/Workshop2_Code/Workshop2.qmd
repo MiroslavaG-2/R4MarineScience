@@ -37,7 +37,7 @@ rm(list=ls()) # clear out environment
 library(tidyverse)
 ```
 
-## Tidying data 
+## Tidying data
 
 Learning how to wrangle data into tidy formats is a critical skill for any data analyst. Tidy data is a standardized way of organizing data that makes it easier to work with and analyze.In this section we will tidy our data with tools in tidyverse.
 
@@ -56,6 +56,7 @@ table2
 ```
 
 ```{r}
+#| output: false
 table3
 ```
 
@@ -70,6 +71,7 @@ By having tidy data we have a consistent structure which makes it easier to lear
 These are some examples of how to work with tidy data (table1), which allows filtering and summarizing data, and using functions in ggplot2. Which would not be possible if it were not to be in this format.
 
 ```{r}
+#| output: false
 # Compute rate per 10,000
 table1 %>%
   mutate(rate = cases / population * 10000)
@@ -113,6 +115,7 @@ The function pivot_longer() splits the dataset by column and re-formats it into 
 For instance, using the billboard dataset records. The billboard rank of songs in the year 2000:
 
 ```{r}
+#| output: false
 billboard
 ```
 
@@ -184,6 +187,7 @@ In some instances, we will need to widen the dataset rather than lengthening it.
 Using an example from R4DS to explore pivot_wider() looking at the following dataset from the centers of Medicare and Medicaid.
 
 ```{r}
+#| output: false
 cms_patient_experience
 ```
 
@@ -199,6 +203,7 @@ measure_cd will be used as the source for the new column names, but in real anal
 With pivot_wider() we need to provide the existing columns that define the values (values_from) and the column name (names_from).
 
 ```{r}
+#| output: false
 cms_patient_experience |> 
   pivot_wider(
     names_from = measure_cd,
@@ -247,6 +252,7 @@ df |>
 To start pivoting, the function pivot_wider() needs to figure out what will go in the rows and columns.
 
 ```{r}
+#| output: false
 df |> 
   distinct(measurement) |> #new column names will be unique values of measurement
   pull()
@@ -255,12 +261,13 @@ df |>
 By default the rows in the output are determined by all the variables that are not going into the new names or values, called id_cols.
 
 ```{r}
+#| output: false
 df |> 
   select(-measurement, -value) |> 
   distinct()
 ```
 
-Pivot wider then combines these results to generate an empty dataframe. Which then fills in all the missing values using data in the input. In this case, not every cell has a corresponding value, so it remains missing. This will be covered later in the workshop.
+Pivot wider then combines these results to generate an empty data frame. Which then fills in all the missing values using data in the input. In this case, not every cell has a corresponding value, so it remains missing. This will be covered later in the workshop.
 
 ```{r}
 df |> 
@@ -273,7 +280,7 @@ df |>
 
 ### Lengthening data with pivot_longer()
 
-To create a single plot that shows the distribution of all morphometric measurements (bill length and depth, flipper length, and body mass) for the penguins. In the current tidy format, these variables are spread across four columns.
+To create a single plot that shows the distribution of all morpho-metric measurements (bill length and depth, flipper length, and body mass) for the penguins. In the current tidy format, these variables are spread across four columns.
 
 To plot them using facet_wrap(), we need them stacked into just two columns, one to identify the measurement name, and one with the numerical value. This can be achieved my making it into a long format:
 
@@ -350,6 +357,7 @@ table3
 We need to split the rate column into two variables (cases and population). the function separte() will take the name of the column we want to split and the name of the columns we want to split into.
 
 ```{r}
+#| output: false
 table3 %>% 
   separate(rate, into = c("cases", "population"))
 ```
@@ -361,9 +369,10 @@ table3 %>%
   separate(rate, into = c("cases", "population"), sep = "/")
 ```
 
-in the table aboe, both cases and population are listed as character types. This is a default by using the separate function. However since the values in those columns are numbers we want separate() to convert the into better types.
+in the table above, both cases and population are listed as character types. This is a default by using the separate function. However since the values in those columns are numbers we want separate() to convert the into better types.
 
 ```{r}
+#| output: false
 table3 %>% 
   separate(rate, into = c("cases", "population"), convert = TRUE #to convert into better data type
            )
@@ -392,7 +401,7 @@ When combining data from different sources, we run into formatting mismatches. F
 
 Before merging datasets or plotting timelines, we must standardize our text strings and date-times. We can do this by using 'stringr' and 'lubridate' from 'tidyverse'.
 
-### Standardising text with 'stringr'
+### Standardizing text with 'stringr'
 
 All functions begin with 'str\_' making them easy to find. Here we will be cleaning up a messy vector of site names before conducting a data summary.
 
@@ -418,7 +427,7 @@ clean_sites <- messy_sites |>
 print(clean_sites)
 ```
 
-Doing this will have converted five uniquely messy inputs into just two perfectly standarized categories.
+Doing this will have converted five uniquely messy inputs into just two perfectly standardised categories.
 
 ### Mastering time with lubridate
 
@@ -436,7 +445,7 @@ date_1 == date_2
 
 ```
 
-Often times we also need to parse exact timestamps, which is done by appending \_hms (hours, minutes, seconds) to our functions
+Oftentimes we also need to parse exact time stamps, which is done by appending \_hms (hours, minutes, seconds) to our functions
 
 ```{r}
 # A tibble of raw sensor data with a messy character timestamp.
@@ -596,11 +605,11 @@ raw_catch
 
 ```
 
-While it is implied that Reef_2 was surveyed, no Plectopompus was found there. If we calculate the mean catch of this species across all sites, R will say it is 2 as it only knows about those in Reef_1. However, the mean should be 1 as there were 2 found in reef one and 0 at reef 2.
+While it is implied that Reef_2 was surveyed, no *Plectopompus* was found there. If we calculate the mean catch of this species across all sites, R will say it is 2 as it only knows about those in Reef_1. However, the mean should be 1, as there were 2 found in Reef_1 and 0 at Reef_2.
 
 The function tidyr::complete() can be used to build a zero-data framework. This function finds all unique combinations of supplied variables. This creates rows for the missing combinations, which fills the resulting NAs with 0.
 
-The following will list Pleopardus with a count of 0 in reef 2. Building these frameworks is a mandatory perquisite before feeding the data into linear models and other analyses.
+The following will list *Pleopardus* with a count of 0 in reef 2. Building these frameworks is a mandatory prerequisite before feeding the data into linear models and other analyses.
 
 ```{r}
 # Force inclusion of hidden zero-catch data
@@ -613,7 +622,7 @@ print(full_catch_matrix)
 
 ### The nuclear option: drop_na()
 
-If NAs represent a failed instrument reading, and the reading is the core response varaible of the analysis,the entire row needs to be removed by using drop_na()
+If NAs represent a failed instrument reading, and the reading is the core response variable of the analysis, the entire row needs to be removed by using drop_na()
 
 ```{r}
 sensor_log <- tibble(
@@ -710,5 +719,3 @@ max_mass_table <- penguins_spatial |>
 max_mass_table
 
 ```
-
-
