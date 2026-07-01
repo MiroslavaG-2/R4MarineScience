@@ -38,22 +38,24 @@ rm(list=ls()) # clear out environment
 
 library(tidyverse)
 library(readxl)
+library(here)
 ```
 
-## Load main dataset
+## Load the main dataset
 
 The catch data is split across 4 tabs in one excel file. Load them individually and then combine them together.
 
 ```{r}
-catch1 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 1)
-catch2 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 2)
-catch3 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 3)
-catch4 <- read_excel("../data/workshop2/estuary_catch_log.xlsx", sheet = 4)
+catch1 <- read_excel(here("data", "workshop2", "estuary_catch_log.xlsx"), sheet = 1)
+catch2 <- read_excel(here("data", "workshop2", "estuary_catch_log.xlsx"), sheet = 2)
+catch3 <- read_excel(here("data", "workshop2", "estuary_catch_log.xlsx"), sheet = 3)
+catch4 <- read_excel(here("data", "workshop2", "estuary_catch_log.xlsx"), sheet = 4)
 ```
 
 Inspect each tab to look for abnormalities between workbooks and variable naming issues
 
 ```{r}
+#| include: false
 catch1
 catch2
 catch3
@@ -72,6 +74,7 @@ rm(catch1, catch2, catch3, catch4) # Clean up the environment
 ### Preliminary checks
 
 ```{r}
+#| output: false
 catch_data
 head(catch_data)
 glimpse(catch_data)
@@ -97,7 +100,7 @@ We need to fix the site names and place them in a reasonable order. As well as f
 ## Load the metadata
 
 ```{r}
-metadata <- read.csv("../data/workshop2/estuary_metadata.csv")
+metadata <- read.csv(here("data", "workshop2", "estuary_metadata.csv"))
 ```
 
 ### Checks
@@ -107,7 +110,7 @@ head(metadata)
 glimpse(metadata)
 ```
 
-The site names on the metadata are also all over the place, these will need to be standardized along with the catch_data table before both of the tables get combined.
+The site names on the metadata are also all over the place; these will need to be standardised along with the catch_data table before both of the tables get combined.
 
 ### Fixing site names
 
@@ -134,6 +137,7 @@ metadata <- metadata |>
 ### Recheck
 
 ```{r recheck-site-names}
+#| output: false
 # Check data table
 str(catch_data)
 # Check site names only
@@ -148,24 +152,25 @@ metadata |>
 
 ```
 
-Now the site names are fixed in both tables but there is still differences in the variable names (site vs site_name). This can be fixed when we join the datasets together.
+Now the site names are fixed in both tables, but the variable names still differ (site vs site_name). This can be fixed when we join the datasets together.
 
 ### Fixing the species names
 
-Using the taxonomic dictionary we can find the scientific names for the species. We need to match the common names in the catch log to match them to their scientific name before joining both datasets.
+Using the taxonomic dictionary, we can find the scientific names for the species. We need to match the common names in the catch log to their scientific names before joining the two datasets.
 
 #### Loading the taxonomic dictionary
 
 ```{r}
-species_dict <- read_csv("../data/workshop2/species_dictionary.csv")
+species_dict <- read_csv(here("data", "workshop2", "species_dictionary.csv"))
 
 # Check
 head(species_dict)
 ```
 
-After loading the taxonomic dictionary we can check the species name of both our data and the dictionary.
+After loading the taxonomic dictionary, we can check the species name of both our data and the dictionary.
 
 ```{r}
+#| output: false
 # Species names we have
 catch_data |> 
   distinct(species)
@@ -176,9 +181,10 @@ species_dict |>
 
 ```
 
-As we can see they both have different names for the species. The common species name variable in the catch data to match those of the dictionary. Here we will fix the species names.
+As we can see, they both have different names for the species. The common species name variable in the catch data to match those of the dictionary. Here we will fix the species names.
 
 ```{r}
+#| output: false
 catch_data <- catch_data |>
   mutate(
     species = str_to_lower(str_trim(species)),
@@ -205,18 +211,21 @@ catch_data |>
 
 ## Load the sensor data
 
-The code for this was written in a different RScript which we can use to source.
+The code for this was written in a separate R script, which we can source.
 
-The sourced script now contains daily means for three environmental variables (temperature, salinity, and turbidity) for each site, and any outliers were also removed.
+The sourced script now contains daily means of three environmental variables (temperature, salinity, and turbidity) for each site, and any outliers have been removed.
 
 ```{r}
-source(here::here("code/W2_SensorData_FinalEx.R"))
+#| output: false
+source(here::here("code", "Workshop2_Code", "W2_SensorData_FinalEx.R"))
 
 ```
 
 ## Join catch data with the metadata and sensor data
 
 ```{r}
+#| output: false
+
 #Every row in catch_data is kept when using left_join()
 catch_data_final <- catch_data |>
   left_join(metadata, by = join_by(site == site_name)) |> # This matches the site columns in both datasets
@@ -227,11 +236,11 @@ catch_data_final
 glimpse(catch_data_final)
 ```
 
-After checking we can see that we now have 427 rows of data when in reality we should have 480 \[4(spp.)\* 4(sites)\* 30(surveys) = 480\]. This happened as in some days there were 0 counts of certain species at different sites.
+After checking, we can see that we now have 427 rows of data, whereas we should have 480 \[4(spp.) \* 4(sites)\* 30(surveys) = 480\]. This happened because, on some days, there were 0 counts of certain species at different sites.
 
 ## Wrangle final dataset
 
-We'll correct the missing rows by changing any missing data with 0's, and obtain the complete dataset with 480 rows. This will be important for any subsequent analyses and visualizations, as we want to be able to distinguish between true absences and missing data.
+We'll correct the missing rows by replacing any missing data with 0s, resulting in a complete dataset of 480 rows. This will be important for any subsequent analyses and visualisations, as we want to distinguish between true absences and missing data.
 
 ```{r}
 catch_data_final <- 
@@ -255,7 +264,7 @@ After doing this we now have the 480 rows and we have finished our main data wra
 
 ### Difference in environmental variables
 
-Firstly we will check if there is an actual difference in environmental variables among zones.
+Firstly, we will check if there is an actual difference in environmental variables among zones.
 
 #### Salinity
 
@@ -269,8 +278,6 @@ sal_sum <-
     median_salinity = median(mean_salinity, na.rm = TRUE),
     .groups = "drop"
   )
-
-sal_sum
 
 ```
 
@@ -316,6 +323,7 @@ turb_sum |>
 #### Temperature
 
 ```{r}
+# Create summary table
 temp_sum <- 
   catch_data_final |>
   group_by(zone) |>
@@ -325,6 +333,7 @@ temp_sum <-
     .groups = "drop"
   )
 
+# Create plot
 temp_sum |>
   ggplot(aes(x = zone, y = median_temperature)) +
   geom_point() +
@@ -336,12 +345,11 @@ temp_sum |>
 
 ```
 
-Based on all three graphs we can deduce that only salinity differs between sites along the estuary. While temperature and turbidity vary very lightly between sites. 
-We will therefore move on with salinity as our main environmental variation of interest, and discuss any other potentially confounding effects of temperature and turbidity in the discussion, as these could also potentially influence patterns of fish assemblages.
+Based on all three graphs, we can deduce that only salinity differs between sites along the estuary. While temperature and turbidity vary very lightly between sites. We will therefore proceed with salinity as our main environmental variable of interest and discuss any other potentially confounding effects of temperature and turbidity in the discussion, as these could also influence patterns of fish assemblages.
 
 ### Remaking the salinity plot
 
-We will now remake the salinity plot so it will be publication ready.
+We will now remake the salinity plot so it will be publication-ready.
 
 ```{r}
 #| fig-cap: "Salinity across zones, Ross River Estuary System, Townsville, QLD (May 2026)."
@@ -369,6 +377,7 @@ sal_sum |>
 This last graph aims to show the predatory fish abundance across the estuary salinity gradients in the Ross River Estuary system as of May 2026.
 
 ```{r}
+#| output: false
 # Summary stats
 fish_stats <- catch_data_final |>
   group_by(zone, scientific_name) |>
@@ -407,7 +416,3 @@ fish_stats |>
   )
 
 ```
-
-
-
-
